@@ -8,6 +8,8 @@ It builds trust and explainability into RAG systems, enabling users to see and v
 ### Deployment
 This was containerized and deployed on **Google's Cloud Run** at: [x-rag.leonardeshun.com](https://x-rag.leonardeshun.com)
 
+![alt text](images/attribution.png)
+
 ### How it works
 Using around 4 documents, the main steps:
 - Retrieve top-3 chunks using Facebook AI Similarity Search (FAISS) vector "database"
@@ -45,6 +47,7 @@ Think of it as a microscope for model decisions: instead of only saying why the 
 ### Low-Support Sentences (Possible Hallucinations)
 This tab indicates sentences with very low sentence attribution, indicating that it doesn't have any real closeness in semantic meaning with any of the chunks generated and therefore probably not coming from the context. Which also suggest it could be coming out of the generation LLM's hallucination.
 
+![alt text](images/saliency.png)
 
 ### Technical Features
 - FAISS retrieval  
