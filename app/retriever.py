@@ -24,6 +24,7 @@ class RAGRetriever:
         self.index = faiss.IndexFlatL2(dim)
         self.index.add(self.embeddings)
 
+    # For loading and chunking documents - intended for use within internal class
     def _load_and_chunk_documents(self):
         docs = []
         meta = []
@@ -41,6 +42,7 @@ class RAGRetriever:
 
         return docs, meta
 
+    # Helper function for chunking text
     def _chunk_text(self, text):
         words = text.split()
         chunks = []
@@ -53,6 +55,8 @@ class RAGRetriever:
 
         return chunks
 
+    # This searches the FAISS dataset and retrieve the top 3 chunks for context
+    # It checks the cache first
     def retrieve(self, query, top_k=3):
         cached = cache_get(query)
         if cached:

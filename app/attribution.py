@@ -28,6 +28,7 @@ client = (
 )  # NEW API STYLE – replaces openai.ChatCompletion
 
 
+# Generates an answer to the question given the context
 def generate_llm_answer(query, chunks):
     context = "\n\n".join([c["text"] for c in chunks])
 
@@ -47,6 +48,7 @@ def generate_llm_answer(query, chunks):
     return response.choices[0].message.content
 
 
+# This is used for sentence attribution
 def match_sentences(answer, retrieved):
     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     # sentences = nltk.sent_tokenize(answer)
@@ -62,23 +64,6 @@ def match_sentences(answer, retrieved):
         j = np.argmax(sims[i])
         results.append({"sentence": s, "source_id": j, "similarity": float(sims[i][j])})
     return results
-
-
-# def token_saliency(answer, retrieved):
-#     tokens = answer.split()
-#     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-
-#     base = model.encode([" ".join(tokens)])
-#     doc_emb = model.encode([retrieved[0]["text"]])
-
-#     sal = []
-#     for i in range(len(tokens)):
-#         reduced = tokens[:i] + tokens[i + 1 :]
-#         new = model.encode([" ".join(reduced)])
-#         score = float(cosine_similarity(base, new))
-#         sal.append((tokens[i], score))
-
-#     return sal
 
 
 def token_saliency(answer, retrieved):
@@ -122,5 +107,6 @@ def token_saliency(answer, retrieved):
     return list(zip(tokens, saliency_scores))
 
 
+# Detects hallucination based on the attributed similarity score
 def detect_hallucinations(attribution, thr=0.35):
     return [s for s in attribution if s["similarity"] < thr]

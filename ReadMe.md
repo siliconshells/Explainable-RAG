@@ -5,6 +5,9 @@ LLMs often cite retrieved documents but give no clue how each retrieved document
 
 It builds trust and explainability into RAG systems, enabling users to see and verify how answers are grounded in evidence. This also exposes hallucination when it occurs in RAG systems.
 
+### Deployment
+This was containerized and deployed on **Google's Cloud Run** at: x-rag.leonardeshun.com
+
 ### How it works
 Using around 4 documents, the main steps:
 - Retrieve top-k chunks using Facebook AI Similarity Search (FAISS) vector "database"

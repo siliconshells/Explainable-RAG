@@ -7,7 +7,7 @@ from .attribution import (
     detect_hallucinations,
 )
 
-# ✔️ Define Blueprint FIRST
+# Define Blueprint FIRST
 main_bp = Blueprint("main", __name__)
 
 retriever = RAGRetriever("documents/")
@@ -43,5 +43,5 @@ def index():
             hallucinations=hallucinations,
         )
 
-    # GET request → show empty page
+    # GET request - show empty page
     return render_template("index.html")
