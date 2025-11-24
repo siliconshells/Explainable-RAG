@@ -1,0 +1,6 @@
+__pycache__
+app/__pycache__
+.git
+.env
+venv
+copy_to_deploy_to_gcloud

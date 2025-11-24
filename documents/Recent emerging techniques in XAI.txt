@@ -1,0 +1,34 @@
+Which Paper
+Recent emerging techniques in explainable artificial intelligence to enhance the interpretable and understanding of AI Models for humans by Mathew et al. Published by Springer in February 2025.
+What is XAI
+As AI systems become more complex, sophisticated and pervasive in every aspect of our lives, they influence our actions by making decisions and recommendations we can?t ignore. They?re in healthcare, finance, retail, agriculture, education, logistics, legal, transportation etc. However, the challenge is that as humans, we want to understand how decisions are made and what can influence that decision in the future to convince ourselves that they were the right decisions, fair and unbiased. It?s even more important when we may have to defer decision-making to an AI system in some instances. Especially models like neural networks and ensemble models are not naturally explainable.
+Aim of XAI
+Explainable AI is necessary for monitoring AI systems and improving on them. It?s also very crucial in ensuring understanding, trust among its human users, safety, its adoption, regulation and compliance. What is important is that the users should not need technical expertise to understand what the AI is doing, just the domain knowledge should be sufficient. The main areas of XAI are Reliability (consistent results), Privacy (safeguarding sensitive information), Fairness (unbiased and equitable AI decisions), Usability  (accessible and user friendly), Causality (uncover the cause and effect relationships), Trust, and Transparency (disclosing everything about the model and its processes). These ensure responsible, ethical and accountable AI deployments.
+Types of XAI
+The main techniques used for XAI are post-hoc explanations, model transparency methods, counterfactual methods, and visualization / interactive visualization. There is also a focus on two main areas, which is why an AI system made a specific decision (local) and what influences the AI system?s behavior in general (global).
+For post-hoc, we have SHAP and LIME. In these, the AI system is already trained and able to make decisions. These techniques are then used to understand what it?s doing and why.
+For SHAP (Shapley Additive Explanation), it explains how features of the data influence the model?s decision. So in healthcare, age, symptoms and lab results will be examined for their influence on diagnosis in general.
+For LIME (Local Interpretable Model-agnostic Explanations), explains how an individual prediction was made. In healthcare, it would clarify why specific diagnoses or risk score was assigned in a specific case.
+Visualization techniques provide an intuitive representation of the model?s behavior in charts, graphs, etc, It helps detect anomalies more effectively. With interactive visualization, data can be manipulated to observe real-time changes in model predictions.
+With counterfactual methods, users are able to see what changes in the input will produce which different results.
+Applications of XAI in different industries
+In healthcare, AI systems are increasingly being used for diagnosis and medication recommendations. Imagine presenting at the hospital with an illness and the AI system recommending only a painkiller medication. You and the doctor would like to know why that conclusion was made. 
+In finance, the challenges with AI are already happening when loans are declined and there is no reasonable explanation. XAI is needed to inform users and affected parties about the cause of the denial.
+In criminal justice, AI systems determine the likelihood of recidivism. It is the likelihood for a released prisoner to return to state correctional authority. For all intents and purposes, you would want to know why a decision was made in any particular case to ensure a reformed person isn?t denied release and a dangerous person isn?t released. XAI enables the understanding, and it is at the core trust for AI systems and the decisions they make.
+In all these, real human lives are involved and could mean life or death in some cases. Many more applications.
+Enhancing XAI
+Disclose information about the data and processes around data collection and model training.
+Prefer simpler, interpretable models to complex models as much as possible. 
+The collaboration of varying domain experts in the AI development process is crucial in increasing trust and accountability. AI developers, domain experts, ethicists, psychologists, sociologists, end users and other disciplines should work together.
+Regular auditing of AI systems will help reveal issues, improve them and make them trustworthy.
+
+Future and conclusion 
+There are still challenges due to the inherent trade-off between model complexity and interpretability, even though a lot of progress is being made. Depending on effectiveness, future development should be as model-agnostic as possible.
+Context-aware XAI techniques should be pursued to ensure explanations are tweaked for the end-user in context to ensure the usefulness of the explanation. 
+
+
+
+
+1
+
+

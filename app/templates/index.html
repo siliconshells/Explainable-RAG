@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Explainable RAG</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        /* --------------------------------------------------
+           MAIN CARD
+        -------------------------------------------------- */
+        .main-card {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 16px;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+        }
+
+        textarea {
+            height: 140px;
+            resize: none;
+            border-radius: 10px !important;
+        }
+
+        /* --------------------------------------------------
+           TABS
+        -------------------------------------------------- */
+        .tab-bar {
+            margin-top: 35px;
+            display: flex;
+            gap: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .tab-btn {
+            font-weight: 700;
+            cursor: pointer;
+            color: #3b4252;
+            position: relative;
+            padding: 5px 2px;
+            transition: color 0.25s;
+        }
+
+        .tab-btn:hover {
+            color: #1d4ed8;
+        }
+
+        .tab-btn.active {
+            color: #1e3a8a;
+        }
+
+        /* underline animation */
+        #tab-underline {
+            position: absolute;
+            height: 3px;
+            bottom: -2px;
+            width: 0px;
+            background: #1d4ed8;
+            border-radius: 6px;
+            transition: width 0.25s ease, transform 0.25s ease;
+        }
+
+        .tab-section {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(6px);}
+            to   {opacity: 1; transform: translateY(0);}
+        }
+
+        /* attribution bars */
+        .bar-wrapper {
+            background: #d1d5db;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .bar-fill {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #2563eb, #0ea5e9);
+        }
+
+        /* token heatmap */
+        .token {
+            display: inline-block;
+            padding: 3px 6px;
+            margin: 2px;
+            border-radius: 4px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+        }
+
+        /* Decorative background layers */
+        .bg-layer{ position:fixed; inset:0; pointer-events:none; z-index:-1 }
+        .bg-grid{
+        background-image:
+            radial-gradient(circle at 8px 8px, rgba(70,130,180,0.12) 1.5px, transparent 1.5px),
+            radial-gradient(circle at 0 0, rgba(70,130,180,0.05), transparent 25%);
+        background-size: 16px 16px, 100% 100%;
+        }
+        .bg-glow{
+        background:
+            radial-gradient(600px 300px at 15% 20%, rgba(70,130,180,0.20), transparent 60%),
+            radial-gradient(700px 300px at 85% 10%, rgba(106,164,207,0.18), transparent 60%),
+            radial-gradient(800px 400px at 50% 110%, rgba(43,79,110,0.16), transparent 60%);
+        }
+
+        /* ----------------------------------------------
+        GLASSY INPUT + BUTTON (Fills the main card)
+        -----------------------------------------------*/
+        .glassy-input {
+            width: 99.5%;
+            height: 100px;
+            /* padding: 18px; */
+            border-radius: 14px;
+            font-size: 1.1rem;
+            margin-top: 5px;
+            margin-bottom: 5px;
+
+            background: rgba(255, 255, 255, 0.35);
+            /* backdrop-filter: blur(12px); */
+            -webkit-backdrop-filter: blur(5px);
+
+            border: 1px solid rgba(34, 131, 222, 0.095);
+            /* box-shadow: 0 6px 18px rgba(0,0,0,0.12); */
+
+            resize: none;
+            /* outline: none; */
+            transition: box-shadow 0.25s, background 0.25s;
+        }
+
+        .glassy-input:focus {
+            /* background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.5); */
+        }
+
+        /* Glassy Button */
+        .glassy-button {
+            width: 100px;
+            padding: 5px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+
+            border: 1px solid rgba(140, 179, 251, 0.45);
+            background: rgba(2, 79, 156, 0.939);
+
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+
+            color: white;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+        }
+
+        .glassy-button:hover {
+            background: rgba(37, 99, 235, 0.65);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+        }
+
+        .glassy-button:active {
+            transform: scale(0.98);
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="bg-layer bg-grid"></div>
+    <div class="bg-layer bg-glow"></div>
+
+    <div class="container" style="width: 90%; max-width: 1600px; margin: auto;">
+
+    <div style="width: 100%; display: flex; align-items: center; justify-content: center;">
+        <h2 style="color: #04417e; margin: 20px; background-color: rgba(255, 255, 255, 0.634); font-weight: 550; font-family:'Orbitron',sans-serif;">
+            Explainable Retrieval Augmented Generation (X-RAG)
+        </h2>
+    </div>
+
+    <!-- ------------------ MAIN CARD ------------------ -->
+    <div class="main-card">
+        <form method="POST">
+            <h4 style="margin: 0; padding: 0;">Ask a Question on: </h4>
+            <ul style="margin: 0; ">
+                <li>GradCAM</li>
+                <li>A Hacker's Mind by Bruce Schneier</li>
+                <li>Recent emerging techniques in XAI to enhance the interpretable and understanding of AI Models for humans <strong>by Mathew et al.</strong></li>
+            </ul>
+            <!-- Glassy Textarea -->
+            <textarea class="glassy-input mb-3" name="query"
+                    placeholder="Type your question here...">{{ query }}</textarea>
+
+            <!-- Glassy Button -->
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+
+                <!-- Left side link -->
+                <a style="cursor: pointer; color: #04417e; font-size: medium;" 
+                data-bs-toggle="modal" 
+                data-bs-target="#explainableRagModal">
+                    View the Explainable RAG Overview
+                </a>
+
+                <!-- Right side button -->
+                <button class="glassy-button" type="submit">
+                    Ask
+                </button>
+
+            </div>
+
+            {% if answer %}
+            <h4>Answer</h4>
+            <p>{{ answer }}</p>
+            {% endif %}
+        </form>
+
+    </div>
+
+
+    {% if answer %}
+        <!-- ------------------ TABS ------------------ -->
+
+        <div class="tab-bar" style="background-color: rgba(255, 255, 255, 0.5);">
+            <div class="tab-btn active" data-tab="documents">Retrieved Documents</div>
+            <div class="tab-btn" data-tab="sentences">Sentence Attribution</div>
+            <div class="tab-btn" data-tab="heatmap">Token-Level Saliency</div>
+            <div class="tab-btn" data-tab="hallucinations">Low-Support Sentences (Possible Hallucinations)</div>
+            <div id="tab-underline"></div>
+        </div>
+
+
+        <!-- Retrieved Documents -->
+        <div id="section-documents" class="tab-section active">
+            <div class="main-card mb-3">
+            {% for doc in retrieved %}
+                <!-- <strong>Doc {{ loop.index }} — {{ doc.meta.filename }} (Chunk {{ doc.meta.chunk_id }})</strong> -->
+                <strong>Source {{ loop.index }} — Chunk {{ doc.meta.chunk_id }} from the file "{{ doc.meta.filename }}"</strong>
+                <pre class="mt-2">{{ doc.text }}</pre>
+            {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sentence Attribution -->
+        <div id="section-sentences" class="tab-section">
+            <div class="main-card mb-3">
+            {% for a in attribution %}
+                <strong>Sentence:</strong> {{ a.sentence }}<br>
+                <div class="bar-wrapper mt-2">
+                    <div class="bar-fill" style="width: {{ a.similarity * 100 if a.similarity > 0 else 0 }}%;"></div>
+                </div>
+                <div class="small text-muted mt-1">
+                    Generated from retrieved documents source <strong>{{ a.source_id + 1 }}</strong>
+                    with a similarity score of <strong>{{ "%.3f"|format(a.similarity) }}</strong>  
+                </div>
+                <br>
+            {% endfor %}
+            </div>
+        </div>
+
+        <!-- Attribution Heatmap -->
+        <div id="section-heatmap" class="tab-section">
+            <div class="main-card mb-3">
+                {% for token, score in saliency %}
+                <span class="token" data-score="{{score}}">{{token}}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Hallucinations -->
+        <div id="section-hallucinations" class="tab-section">
+            <div class="main-card mb-3">
+                {% if hallucinations|length > 0 %}
+                    <ul>
+                    {% for h in hallucinations %}
+                        <li style="color:red;">{{ h.sentence }} ({{ "%.2f"|format(h.similarity) }})</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hallucinations detected.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="explainableRagModal" tabindex="-1" aria-labelledby="explainableRagLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius: 12px;">
+      <div class="modal-header">
+        <h5 class="modal-title" id="explainableRagLabel">Explainable RAG Overview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- THE CONTENT YOU PROVIDED, CLEANLY INSERTED -->
+        <section style="font-family: Arial, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 900px; margin: auto;">
+
+            <h3 style="color: #04417e; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px;">
+                Explainable RAG: Understanding How LLMs Use Context
+            </h3>
+
+            <h4 style="color: #04417e;">Motivation and Why It Matters</h4>
+            <p>
+                LLMs often cite retrieved documents but give no clue how each retrieved document chunk affects their responses, so users can't verify faithfulness. Using a RAG system with sources we control, this project asks the LLM to use only the retrieved context for its response, allowing us to evaluate how the LLMs use the context they get to provide a response.   
+
+                It builds trust and explainability into RAG systems, enabling users to see and verify how answers are grounded in evidence. This also exposes hallucination when it occurs in RAG systems.
+            </p>
+
+            <h4 style="color: #04417e;">How It Works</h4>
+            <ul>
+                <li>Retrieve top-k chunks using <strong>FAISS</strong> (Facebook AI Similarity Search)</li>
+                <li>Generate dense embeddings using <code>all-MiniLM-L6-v2</code> from <strong>sentence-transformers</strong></li>
+                <li>Generate responses using OpenAI's `gpt-4.1-mini`</li>
+                <li>Attribute sentences to sources via cosine similarity</li>
+                <li>Compute <strong>token-level saliency</strong> (E5 embeddings) to reveal reliance on the source</li>
+                <li>Flag low-support sentences for hallucination detection</li>
+            </ul>
+
+            <h4 style="color: #04417e;">Context</h4>
+            <p>
+                The system was tested using four uploaded documents. If a question falls outside their scope, the model 
+                is designed to admit it cannot answer, this is part of the controlled experiment using a restricted 
+                prompting template.
+            </p>
+
+            <p>The current documents include:</p>
+            <ol>
+                <li>An article on GradCAM and the original Grad-CAM paper (images and formulas removed)</li>
+                <li><em>A Hacker’s Mind</em> — A personal reflection on Bruce Schneier’s book</li>
+                <li>A reflection on <em>Emerging Techniques in XAI</em> by Mathew et al.</li>
+            </ol>
+
+            <p>
+                The system can ingest any <code>.txt</code> or <code>.md</code> file placed in the <code>documents</code> folder. 
+                The full implementation is available in my GitHub repository: <strong>siliconshells</strong>.
+            </p>
+
+            <h4 style="color: #04417e;">Some Questions</h4>
+            <ol>
+                <li>What is Artificial Intelligence?</li>
+                <li>Tell me about A Hacker's Mind.</li>
+                <li>What is XAI?</li>
+                <li>What is GradCAM?</li>
+                <li>What is a CNN?</li>
+                <li>What is mechanistic interpretability?</li>
+            </ol>
+
+            <h4 style="color: #04417e;">Retrieved Documents</h4>
+            <p>
+                This section shows which stored text chunks were retrieved as context for the LLM’s answer generation. 
+                The system retrieves the top three chunks and displays the file each chunk originated from.
+            </p>
+
+            <h4 style="color: #04417e;">Token-Level Saliency</h4>
+            <p>
+                Token-Level Saliency measures how much each individual token (word) contributes to the model’s prediction. 
+                It compares the question and the answer to determine influence at a microscopic level.
+            </p>
+
+            <h4 style="color: #04417e;">Low-Support Sentences (Possible Hallucinations)</h4>
+            <p>
+                Lists sentences with very low attribution scores—likely not sourced from retrieved documents and possibly 
+                hallucinated by the model.
+            </p>
+
+            <h4 style="color: #04417e;">Technical Features</h4>
+            <ul>
+                <li>FAISS retrieval</li>
+                <li>Sentence attribution</li>
+                <li>Token saliency</li>
+                <li>Hallucination detection</li>
+                <li>Flask + Gunicorn + Nginx</li>
+                <li>Redis caching</li>
+                <li>Docker + docker-compose</li>
+                <li>CI tests</li>
+            </ul>
+
+        </section>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ------------------ JS: Tabs + Heatmap Coloring ------------------ -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* animate tabs */
+    const buttons = document.querySelectorAll(".tab-btn");
+    const sections = document.querySelectorAll(".tab-section");
+    const underline = document.getElementById("tab-underline");
+
+    function activateTab(btn) {
+        buttons.forEach(b => b.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
+
+        btn.classList.add("active");
+        const id = "section-" + btn.dataset.tab;
+        document.getElementById(id).classList.add("active");
+
+        const rect = btn.getBoundingClientRect();
+        const parent = btn.parentNode.getBoundingClientRect();
+        underline.style.width = rect.width + "px";
+        underline.style.transform = `translateX(${rect.left - parent.left}px)`;
+    }
+
+    activateTab(document.querySelector(".tab-btn.active"));
+
+    buttons.forEach(btn =>
+        btn.addEventListener("click", () => activateTab(btn))
+    );
+
+    /* heatmap coloring */
+    document.querySelectorAll(".token").forEach(tok => {
+        let score = parseFloat(tok.dataset.score) || 0;
+        tok.style.backgroundColor = `rgba(255,0,0,${score})`;
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+Flask==2.3.3
+gunicorn==21.2.0
+# Add your other dependencies here
+faiss-cpu
+sentence-transformers
+scikit-learn
+# nltk
+flask-redis
+openai>=1.0.0
+dotenv
