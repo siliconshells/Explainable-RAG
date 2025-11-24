@@ -1,7 +1,7 @@
 ## Explainable RAG: Understanding how LLMs use Context
 
 ### Motivation and why it matters
-LLMs often cite retrieved documents but give no clue how each retrieved document chunk affects their responses, so users can't verify faithfulness. Using a RAG system with sources we control, this project asks the LLM to use only the retrieved context for its response, allowing us to evaluate how the LLMs use the context they get to provide a response.   
+RAG systems use retrieved documents for context but don't tell how each retrieved document chunk affects their responses, so users can't verify faithfulness. Using a RAG system with sources we control, this project asks the Generation LLM to use only the retrieved context for its response, allowing us to evaluate how the LLMs use the context they get to provide a response.   
 
 It builds trust and explainability into RAG systems, enabling users to see and verify how answers are grounded in evidence. This also exposes hallucination when it occurs in RAG systems.
 
@@ -10,8 +10,8 @@ This was containerized and deployed on **Google's Cloud Run** at: [x-rag.leonard
 
 ### How it works
 Using around 4 documents, the main steps:
-- Retrieve top-k chunks using Facebook AI Similarity Search (FAISS) vector "database"
-dense vector representations (embeddings) was created with `all-MiniLM-L6-v2` from `sentence-transformers (HuggingFace)` to capture the semantic meaning of sentences and short paragraphs.
+- Retrieve top-3 chunks using Facebook AI Similarity Search (FAISS) vector "database"
+- Dense vector representations (embeddings) was created with `all-MiniLM-L6-v2` from `sentence-transformers (HuggingFace)` to capture the semantic meaning of sentences and short paragraphs.
 - Generate responses with OpenAI's `gpt-4.1-mini`.
 - Attribute sentences by matching them to their sources (cosine similarity)
 - Compute token-level saliency (E5 embeddings) to show level of reliance on the source

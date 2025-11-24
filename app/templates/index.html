@@ -323,14 +323,12 @@
 
             <h4 style="color: #04417e;">Motivation and Why It Matters</h4>
             <p>
-                LLMs often cite retrieved documents but give no clue how each retrieved document chunk affects their responses, so users can't verify faithfulness. Using a RAG system with sources we control, this project asks the LLM to use only the retrieved context for its response, allowing us to evaluate how the LLMs use the context they get to provide a response.   
-
-                It builds trust and explainability into RAG systems, enabling users to see and verify how answers are grounded in evidence. This also exposes hallucination when it occurs in RAG systems.
+                RAG systems use retrieved documents for context but don't tell how each retrieved document chunk affects their responses, so users can't verify faithfulness. Using a RAG system with sources we control, this project asks the Generation LLM to use only the retrieved context for its response, allowing us to evaluate how the LLMs use the context they get to provide a response.
             </p>
 
             <h4 style="color: #04417e;">How It Works</h4>
             <ul>
-                <li>Retrieve top-k chunks using <strong>FAISS</strong> (Facebook AI Similarity Search)</li>
+                <li>Retrieve top-3 chunks using <strong>FAISS</strong> (Facebook AI Similarity Search)</li>
                 <li>Generate dense embeddings using <code>all-MiniLM-L6-v2</code> from <strong>sentence-transformers</strong></li>
                 <li>Generate responses using OpenAI's `gpt-4.1-mini`</li>
                 <li>Attribute sentences to sources via cosine similarity</li>
