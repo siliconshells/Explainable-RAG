@@ -1,6 +1,5 @@
 import os
 import faiss
-import numpy as np
 from sentence_transformers import SentenceTransformer
 from .cache import cache_get, cache_set
 
@@ -11,7 +10,9 @@ class RAGRetriever:
         self.chunk_size = chunk_size
         self.overlap = overlap
 
-        self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        # self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        # New (pointing to the local directory where docker saved it):
+        self.model = SentenceTransformer("./models")
 
         # Load and chunk docs
         self.documents, self.meta = self._load_and_chunk_documents()
@@ -24,7 +25,6 @@ class RAGRetriever:
         self.index = faiss.IndexFlatL2(dim)
         self.index.add(self.embeddings)
 
-    # For loading and chunking documents - intended for use within internal class
     def _load_and_chunk_documents(self):
         docs = []
         meta = []
@@ -42,7 +42,6 @@ class RAGRetriever:
 
         return docs, meta
 
-    # Helper function for chunking text
     def _chunk_text(self, text):
         words = text.split()
         chunks = []
@@ -55,8 +54,6 @@ class RAGRetriever:
 
         return chunks
 
-    # This searches the FAISS dataset and retrieve the top 3 chunks for context
-    # It checks the cache first
     def retrieve(self, query, top_k=3):
         cached = cache_get(query)
         if cached:

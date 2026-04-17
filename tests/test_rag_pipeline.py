@@ -1,5 +1,5 @@
 def test_retriever(app):
-    from app.retriever import RAGRetriever
+    from project_fresh_flask.app.retriever import RAGRetriever
 
     r = RAGRetriever("documents/")
     out = r.retrieve("test question")

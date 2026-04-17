@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: explainable_rag_web
-    restart: always
+    restart: unless-stopped
     env_file: .env
     depends_on:
       - redis
@@ -14,13 +14,14 @@ services:
   redis:
     image: redis:alpine
     container_name: rag_redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
 
   nginx:
     image: nginx:alpine
     container_name: rag_nginx
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:

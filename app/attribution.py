@@ -3,20 +3,11 @@ from openai import OpenAI
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-
-import numpy as np
-
-from openai import OpenAI
-
-
 from dotenv import load_dotenv
+import os
+import re
 
 load_dotenv()
-import os
-
-from typing import List
-
-import re
 
 
 def split_sentences(text):
@@ -28,7 +19,6 @@ client = (
 )  # NEW API STYLE – replaces openai.ChatCompletion
 
 
-# Generates an answer to the question given the context
 def generate_llm_answer(query, chunks):
     context = "\n\n".join([c["text"] for c in chunks])
 
@@ -48,7 +38,6 @@ def generate_llm_answer(query, chunks):
     return response.choices[0].message.content
 
 
-# This is used for sentence attribution
 def match_sentences(answer, retrieved):
     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     # sentences = nltk.sent_tokenize(answer)
@@ -93,7 +82,7 @@ def token_saliency(answer, retrieved):
 
         reduced_emb = model.encode([" ".join(reduced_tokens)])[0]
 
-        # Measure change in embedding
+        # Measure change in embedding (the effect of the token on the similarity score, if not important, score remains high)
         delta = 1 - float(cosine_similarity([base_emb], [reduced_emb])[0][0])
         saliency_scores.append(delta)
 
@@ -107,6 +96,5 @@ def token_saliency(answer, retrieved):
     return list(zip(tokens, saliency_scores))
 
 
-# Detects hallucination based on the attributed similarity score
 def detect_hallucinations(attribution, thr=0.35):
     return [s for s in attribution if s["similarity"] < thr]

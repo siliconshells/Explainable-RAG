@@ -1,4 +1,5 @@
 from flask import Flask
+
 from .extensions import redis_client
 from .config import Config
 
