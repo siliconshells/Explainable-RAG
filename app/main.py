@@ -18,19 +18,10 @@ def index():
     if request.method == "POST":
         query = request.form["query"]
 
-        # Retrieve chunks
         retrieved = retriever.retrieve(query)
-
-        # Generate answer
         answer = generate_llm_answer(query, retrieved)
-
-        # Sentence Attribution
         attribution = match_sentences(answer, retrieved)
-
-        # Token Saliency
-        saliency = token_saliency(answer, retrieved)
-
-        # Hallucination Detection
+        saliency = token_saliency(answer)
         hallucinations = detect_hallucinations(attribution)
 
         return render_template(
@@ -43,5 +34,4 @@ def index():
             hallucinations=hallucinations,
         )
 
-    # GET request → show empty page
     return render_template("index.html")

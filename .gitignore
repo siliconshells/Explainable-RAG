@@ -1,8 +1,5 @@
 .env
-misc
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
+misc/
 .DS_Store
-__pycache__
+__pycache__/
+*.pyc

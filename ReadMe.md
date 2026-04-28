@@ -16,7 +16,7 @@ Using around 4 documents, the main steps:
 - Dense vector representations (embeddings) was created with `all-MiniLM-L6-v2` from `sentence-transformers (HuggingFace)` to capture the semantic meaning of sentences and short paragraphs.
 - Generate responses with OpenAI's `gpt-4.1-mini`.
 - Attribute sentences by matching them to their sources (cosine similarity)
-- Compute token-level saliency (E5 embeddings) to show level of reliance on the source
+- Compute token-level saliency (`all-MiniLM-L6-v2` embeddings) to show level of reliance on the source
 - Flag low-support sentences for hallucination detection
 
 
@@ -41,7 +41,7 @@ This tab tells us which of the saved text chunks were retrieved as context for t
 
 
 ### Token-Level Saliency
-Token-Level Saliency shows how much each individual token (word) contributes to a model’s prediction. It compares the question to the answer to determine this.
+Token-Level Saliency shows how much each individual token (word) contributes to the answer’s meaning. It uses a leave-one-out approach: each token is removed from the answer one at a time, and the shift in the sentence embedding measures how much that token mattered.
 Think of it as a microscope for model decisions: instead of only saying why the model answered something, it highlights which exact tokens pushed the model toward its output and by how much.
 
 ### Low-Support Sentences (Possible Hallucinations)
