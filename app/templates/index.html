@@ -253,7 +253,14 @@
     <!-- ------------------ MAIN CARD ------------------ -->
     <div class="main-card">
         <form method="POST">
-            <h4 style="margin: 0; padding: 0;">Ask a Question on: </h4>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; padding: 0;">Ask a question on </h4>
+                <a style="cursor: pointer; color: #04417e; font-size: medium;"
+                data-bs-toggle="modal"
+                data-bs-target="#explainableRagModal">
+                    Show Project Description
+                </a>
+            </div>
             <ul style="margin: 0; ">
                 <li>GradCAM</li>
                 <li>A Hacker's Mind by Bruce Schneier</li>
@@ -264,20 +271,10 @@
                     placeholder="Type your question here...">{{ query }}</textarea>
 
             <!-- Glassy Button -->
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-
-                <!-- Left side link -->
-                <a style="cursor: pointer; color: #04417e; font-size: medium;" 
-                data-bs-toggle="modal" 
-                data-bs-target="#explainableRagModal">
-                    The X-RAG Project Overview
-                </a>
-
-                <!-- Right side button -->
+            <div style="width: 100%; display: flex; justify-content: flex-end; align-items: center;">
                 <button class="glassy-button" type="submit">
                     Ask
                 </button>
-
             </div>
 
             {% if answer %}
