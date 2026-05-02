@@ -6,3 +6,6 @@ scikit-learn
 flask-redis
 openai>=1.0.0
 python-dotenv
+ragas
+langchain-openai
+datasets

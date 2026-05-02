@@ -18,6 +18,7 @@ Using around 4 documents, the main steps:
 - Attribute sentences by matching them to their sources (cosine similarity)
 - Compute token-level saliency (`all-MiniLM-L6-v2` embeddings) to show level of reliance on the source
 - Flag low-support sentences for hallucination detection
+- Score answer quality with **Ragas** (faithfulness, answer relevancy, context precision) using `gpt-4o-mini` as the LLM judge
 
 
 ### Context
@@ -44,6 +45,14 @@ This tab tells us which of the saved text chunks were retrieved as context for t
 Token-Level Saliency shows how much each individual token (word) contributes to the answer’s meaning. It uses a leave-one-out approach: each token is removed from the answer one at a time, and the shift in the sentence embedding measures how much that token mattered.
 Think of it as a microscope for model decisions: instead of only saying why the model answered something, it highlights which exact tokens pushed the model toward its output and by how much.
 
+### Ragas Evaluation
+The first four tabs explain *how* the answer was constructed. This tab grades *how good* the answer is using [Ragas](https://docs.ragas.io)' reference-free LLM-judged metrics. After the answer renders, the page asynchronously requests scores from the server (so the answer never waits on them). Three scores are computed by an LLM judge (`gpt-4o-mini`):
+- **Faithfulness** — share of answer claims supported by the retrieved chunks (LLM-judged version of the heuristic hallucination flagging in the next tab).
+- **Answer Relevancy** — how directly the answer addresses the question.
+- **Context Precision** — share of retrieved chunks judged relevant to the question. The reference-free variant is used so any user-typed question is scorable.
+
+Scores are cached in Redis for 24 hours per question, so repeating a question costs zero API calls. Reference-based metrics like `context_recall` are excluded from the live tab because they require curated ground-truth answers.
+
 ### Low-Support Sentences (Possible Hallucinations)
 This tab indicates sentences with very low sentence attribution, indicating that it doesn't have any real closeness in semantic meaning with any of the chunks generated and therefore probably not coming from the context. Which also suggest it could be coming out of the generation LLM's hallucination.
 
@@ -54,6 +63,7 @@ This tab indicates sentences with very low sentence attribution, indicating that
 - Sentence attribution  
 - Token saliency  
 - Hallucination detection  
+- Ragas evaluation (faithfulness, answer relevancy, context precision)
 - Flask + Gunicorn + Nginx  
 - Redis caching  
 - Docker + docker-compose  

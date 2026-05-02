@@ -103,6 +103,61 @@
             border-radius: 4px;
         }
 
+        /* Ragas evaluation tab */
+        .ragas-row {
+            margin-bottom: 18px;
+        }
+        .ragas-label {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        .ragas-value {
+            float: right;
+            font-variant-numeric: tabular-nums;
+            color: #0f172a;
+        }
+        .ragas-bar {
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 6px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .ragas-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #16a34a, #22d3ee);
+            transition: width 0.6s ease;
+        }
+        .ragas-bar-fill.low { background: linear-gradient(90deg, #dc2626, #f59e0b); }
+        .ragas-bar-fill.mid { background: linear-gradient(90deg, #f59e0b, #facc15); }
+        .ragas-hint {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+        .ragas-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #475569;
+            font-style: italic;
+        }
+        .ragas-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #cbd5e1;
+            border-top-color: #1d4ed8;
+            border-radius: 50%;
+            animation: ragas-spin 0.8s linear infinite;
+        }
+        @keyframes ragas-spin {
+            to { transform: rotate(360deg); }
+        }
+        .ragas-error {
+            color: #b91c1c;
+        }
+
         pre {
             white-space: pre-wrap;
         }
@@ -241,6 +296,7 @@
             <div class="tab-btn active" data-tab="documents">Retrieved Documents</div>
             <div class="tab-btn" data-tab="sentences">Sentence Attribution</div>
             <div class="tab-btn" data-tab="heatmap">Token-Level Saliency</div>
+            <div class="tab-btn" data-tab="ragas">Ragas Evaluation</div>
             <div class="tab-btn" data-tab="hallucinations">Low-Support Sentences (Possible Hallucinations)</div>
             <div id="tab-underline"></div>
         </div>
@@ -283,6 +339,44 @@
             </div>
         </div>
 
+        <!-- Ragas Evaluation -->
+        <div id="section-ragas" class="tab-section">
+            <div class="main-card mb-3">
+                <p class="text-muted mb-3">
+                    Reference-free LLM-judged metrics from <strong>Ragas</strong>.
+                    Scores are computed asynchronously after the answer is rendered.
+                </p>
+
+                <div id="ragas-loading" class="ragas-loading">
+                    <span class="ragas-spinner" aria-hidden="true"></span>
+                    <span>Computing Ragas scores… this can take 5–15 seconds.</span>
+                </div>
+
+                <div id="ragas-results" hidden>
+                    <div class="ragas-row" data-metric="faithfulness">
+                        <span class="ragas-label">Faithfulness</span>
+                        <span class="ragas-value">—</span>
+                        <div class="ragas-bar"><div class="ragas-bar-fill"></div></div>
+                        <div class="ragas-hint">Share of answer claims that are supported by the retrieved chunks.</div>
+                    </div>
+                    <div class="ragas-row" data-metric="answer_relevancy">
+                        <span class="ragas-label">Answer Relevancy</span>
+                        <span class="ragas-value">—</span>
+                        <div class="ragas-bar"><div class="ragas-bar-fill"></div></div>
+                        <div class="ragas-hint">How directly the answer addresses the question.</div>
+                    </div>
+                    <div class="ragas-row" data-metric="context_precision">
+                        <span class="ragas-label">Context Precision</span>
+                        <span class="ragas-value">—</span>
+                        <div class="ragas-bar"><div class="ragas-bar-fill"></div></div>
+                        <div class="ragas-hint">Share of retrieved chunks judged relevant to the question.</div>
+                    </div>
+                </div>
+
+                <div id="ragas-error" class="ragas-error" hidden></div>
+            </div>
+        </div>
+
         <!-- Hallucinations -->
         <div id="section-hallucinations" class="tab-section">
             <div class="main-card mb-3">
@@ -297,6 +391,14 @@
                 {% endif %}
             </div>
         </div>
+
+        <script id="ragas-payload" type="application/json">
+            {
+                "query": {{ query|tojson }},
+                "answer": {{ answer|tojson }},
+                "contexts": {{ retrieved | map(attribute='text') | list | tojson }}
+            }
+        </script>
 
     {% endif %}
 
@@ -330,10 +432,11 @@
             <ul>
                 <li>Retrieve top-3 chunks using <strong>FAISS</strong> (Facebook AI Similarity Search)</li>
                 <li>Generate dense embeddings using <code>all-MiniLM-L6-v2</code> from <strong>sentence-transformers</strong></li>
-                <li>Generate responses using OpenAI's `gpt-4.1-mini`</li>
+                <li>Generate responses using OpenAI's <code>gpt-4.1-mini</code></li>
                 <li>Attribute sentences to sources via cosine similarity</li>
-                <li>Compute <strong>token-level saliency</strong> (<code>all-MiniLM-L6-v2</code> embeddings) to reveal reliance on the source</li>
+                <li>Compute <strong>token-level saliency</strong> via leave-one-out embedding shifts (<code>all-MiniLM-L6-v2</code>) to reveal reliance on the source</li>
                 <li>Flag low-support sentences for hallucination detection</li>
+                <li>Score answer quality with <strong>Ragas</strong> (faithfulness, answer relevancy, context precision) using <code>gpt-4o-mini</code> as the LLM judge</li>
             </ul>
 
             <h4 style="color: #04417e;">Context</h4>
@@ -373,8 +476,39 @@
 
             <h4 style="color: #04417e;">Token-Level Saliency</h4>
             <p>
-                Token-Level Saliency measures how much each individual token (word) contributes to the model’s prediction. 
-                It compares the question and the answer to determine influence at a microscopic level.
+                Token-Level Saliency measures how much each individual token (word) contributes to the answer's
+                meaning. It uses a leave-one-out approach: each token is removed from the answer one at a time,
+                and the shift in the sentence embedding measures how much that token mattered.
+            </p>
+
+            <h4 style="color: #04417e;">Ragas Evaluation</h4>
+            <p>
+                The first four tabs explain <em>how</em> the answer was constructed. This tab grades <em>how good</em>
+                the answer is, using <strong>Ragas</strong>'s reference-free LLM-judged metrics. After the answer
+                renders, the page asynchronously requests scores from the server (so the answer never waits on them).
+            </p>
+            <p>Three scores are computed by an LLM judge (<code>gpt-4o-mini</code>):</p>
+            <ul>
+                <li>
+                    <strong>Faithfulness</strong> — the LLM extracts atomic claims from the answer and checks
+                    each one against the retrieved chunks. The score is the share of claims that are supported.
+                    A direct, LLM-judged version of the heuristic flagging shown in the next tab.
+                </li>
+                <li>
+                    <strong>Answer Relevancy</strong> — the LLM reverse-engineers candidate questions that the
+                    answer would address, embeds them, and compares to the original question via cosine similarity.
+                    Penalizes answers that are off-topic or evasive.
+                </li>
+                <li>
+                    <strong>Context Precision</strong> — for each retrieved chunk, the LLM judges whether it is
+                    actually useful for answering the question. The score reflects retrieval quality rather than
+                    generation quality. The reference-free variant is used so any user-typed question is scorable.
+                </li>
+            </ul>
+            <p>
+                Scores are cached in Redis for 24 hours per question, so repeating a question costs zero API calls.
+                Reference-based metrics like <code>context_recall</code> are excluded from the live tab because they
+                require curated ground-truth answers.
             </p>
 
             <h4 style="color: #04417e;">Low-Support Sentences (Possible Hallucinations)</h4>
@@ -389,6 +523,7 @@
                 <li>Sentence attribution</li>
                 <li>Token saliency</li>
                 <li>Hallucination detection</li>
+                <li>Ragas evaluation (faithfulness, answer relevancy, context precision)</li>
                 <li>Flask + Gunicorn + Nginx</li>
                 <li>Redis caching</li>
                 <li>Docker + docker-compose</li>
@@ -404,8 +539,9 @@
             <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
 
                 <!-- Left side link -->
-                <a href="https://github.com/siliconshells/Explainable-RAG" 
-                target="_blank" 
+                <a href="https://github.com/siliconshells/Explainable-RAG"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="btn btn-primary"
                 style="font-size: medium;">
                     Project Repository on GitHub
@@ -457,6 +593,65 @@ document.addEventListener("DOMContentLoaded", () => {
         let score = parseFloat(tok.dataset.score) || 0;
         tok.style.backgroundColor = `rgba(255,0,0,${score})`;
     });
+
+    /* Ragas async evaluation */
+    const payloadEl = document.getElementById("ragas-payload");
+    if (payloadEl) {
+        const loading = document.getElementById("ragas-loading");
+        const results = document.getElementById("ragas-results");
+        const errorEl = document.getElementById("ragas-error");
+
+        const showError = (message) => {
+            loading.hidden = true;
+            errorEl.hidden = false;
+            errorEl.textContent = `Could not compute Ragas scores: ${message}`;
+        };
+
+        const renderScores = (scores) => {
+            loading.hidden = true;
+            results.hidden = false;
+            results.querySelectorAll(".ragas-row").forEach(row => {
+                const key = row.dataset.metric;
+                const score = scores[key];
+                const valueEl = row.querySelector(".ragas-value");
+                const barEl = row.querySelector(".ragas-bar-fill");
+
+                if (score == null || Number.isNaN(score)) {
+                    valueEl.textContent = "n/a";
+                    barEl.style.width = "0%";
+                    return;
+                }
+
+                const pct = Math.max(0, Math.min(1, score)) * 100;
+                valueEl.textContent = score.toFixed(3);
+                barEl.style.width = pct.toFixed(1) + "%";
+
+                barEl.classList.remove("low", "mid");
+                if (score < 0.5)      barEl.classList.add("low");
+                else if (score < 0.75) barEl.classList.add("mid");
+            });
+        };
+
+        let payload;
+        try {
+            payload = JSON.parse(payloadEl.textContent);
+        } catch (err) {
+            showError("invalid payload");
+            return;
+        }
+
+        fetch("/evaluate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) renderScores(data.scores);
+                else showError(data.error || "unknown error");
+            })
+            .catch(err => showError(err.message));
+    }
 });
 </script>
 

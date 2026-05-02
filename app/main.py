@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, jsonify
 from .retriever import RAGRetriever
 from .attribution import (
     generate_llm_answer,
@@ -35,3 +35,24 @@ def index():
         )
 
     return render_template("index.html")
+
+
+@main_bp.route("/evaluate", methods=["POST"])
+def evaluate_route():
+    """Run Ragas metrics asynchronously after the main answer has rendered."""
+    # Imported inside the route so a missing/broken Ragas install never breaks the home page
+    from .evaluation import evaluate_rag
+
+    data = request.get_json(silent=True) or {}
+    query = data.get("query")
+    answer = data.get("answer")
+    contexts = data.get("contexts")
+
+    if not query or not answer or not contexts:
+        return jsonify({"ok": False, "error": "Missing query, answer, or contexts."}), 400
+
+    try:
+        scores = evaluate_rag(query, answer, contexts)
+        return jsonify({"ok": True, "scores": scores})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
